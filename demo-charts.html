@@ -1,0 +1,392 @@
+<!doctype html>
+<html>
+
+<head>
+	<title>Line Chart</title>
+	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.1"></script>
+	<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+	<script src="../dist/chartjs-plugin-zoom.min.js"></script> -->
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+	<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js" integrity="sha512-wUYbRPLV5zs6IqvWd88HIqZU/b8TBx+I8LEioQ/UC0t5EMCLApqhIAnUg7EsAzdbhhdgW07TqYDdH3QEXRcPOQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js" integrity="sha512-JPcRR8yFa8mmCsfrw4TNte1ZvF1e3+1SdGMslZvmrzDYxS69J7J49vkFL8u6u8PlPJK+H3voElBtUCzaXj+6ig==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+	<style>
+	canvas {
+		-moz-user-select: none;
+		-webkit-user-select: none;
+		-ms-user-select: none;
+	}
+	* {
+		margin: 0;padding: 0; font-family: sans-serif;
+	}	
+	.chartMenu
+		{
+			width: 100vw;height: 40px; background: #1A1A1A;color: rgba(255,26,104,1);
+		}
+	.chartMenu p{padding: 10px; font-size: 20px;}
+	.chartCard {width: 100vw;height: calc(100vh-40px); background: rgba(255,26,104,0.2); display: flex;align-items: center; justify-content: center;}
+	.chartBox {width: 700px; padding: 20px; border-radius: 20px; border: solid 3px rgba(255,26,104,1);background: white; }
+	</style>
+</head>
+
+<body>
+	<div style="width:75%;">
+		<!-- <button onclick="resetZoom()">Reset Zoom</button>
+		<button id="drag-switch" onclick="toggleDragMode()">Disable drag mode</button> -->
+		
+	</div>
+
+	<div class="chartCard">
+		<div class="chartBox">
+			<canvas id="canvas_line"></canvas>
+			<br>
+			<canvas id="canvas_bar"></canvas>
+			<br>
+			<canvas id="canvas_doughnut"></canvas>	
+		</div>
+	</div>
+	
+</body>
+
+<script type="text/javascript">
+	function randomColorFactor() {
+			return Math.round(Math.random() * 255);
+		}
+
+	function randomColor(opacity) {
+		return 'rgba(' + randomColorFactor() + ',' + randomColorFactor() + ',' + randomColorFactor() + ',' + (opacity || '.3') + ')';
+	}
+
+	var canvas = document.getElementById('canvas_line');
+	var ctx = canvas.getContext('2d');
+	var gradient_clr1 = ctx.createLinearGradient(0, 0, 0, 400);
+	gradient_clr1.addColorStop(0, 'rgba(7,224,152,0.5)');   
+	gradient_clr1.addColorStop(1, 'rgba(7,224,152,0.1)');
+
+	var gradient_clr2 = ctx.createLinearGradient(0, 0, 0, 400);
+	gradient_clr2.addColorStop(0, 'rgba(0,149,255,0.5)');   
+	gradient_clr2.addColorStop(1, 'rgba(0,149,255,0.1)');
+
+	var line_data = {
+			labels: [
+				'17 Jan 24','18 Jan 24','19 Jan 24','20 Jan 24','21 Jan 24','22 Jan 24','23 Jan 24','24 Jan 24',
+			],
+			datasets: [
+			{
+				label: 'Current Sales (18 Jan - 25 Jan)',
+				backgroundColor: gradient_clr1,
+				borderColor : 'rgba(7,224,152,1)',
+				pointBorderColor : 'rgba(7,224,152,1)',
+				pointBackgroundColor : 'rgba(7,224,152,1)',
+				pointBorderWidth : 1,
+				fill: true,
+				data: [
+					'10','20','425.40','16','20','0','0','0','0'
+				],
+				//cubicInterpolationMode: 'monotone',
+      			tension: 0.5,
+				borderWidth:1,
+			},
+			{
+				label: 'Previous Sales (10 Jan - 17 Jan)',
+				backgroundColor: gradient_clr2,
+				borderColor : 'rgba(0,149,255,1)',
+				pointBorderColor : 'rgba(0,149,255,1)',
+				pointBackgroundColor : 'rgba(0,149,255,1)',
+				pointBorderWidth : 1,
+				fill: true,
+				data: [
+					'5','55','0','0','0','0','0','69.34','167.60',
+				],
+				//cubicInterpolationMode: 'monotone',
+      			tension: 0.5,
+				borderWidth:1,
+			}
+		]
+	};
+
+	const line_config = {
+		type: 'line',
+		data: line_data,
+		options: {
+			scales: {
+				x: {
+					// min:0,
+					// max:6,
+					grid: {
+						display: false,
+					},
+				},
+				y: {
+					grid: {
+						display: false,
+					},
+					ticks: {
+						// Include a dollar sign in the ticks
+						callback: function(value, index, ticks) {
+							return '$' + value;
+						}
+					},
+					beginAtZero: true,
+				}
+			},
+			plugins: {
+				legend : {
+					display: true,
+					position : 'bottom',
+					align : 'left',
+					// labels: {
+					// 	onClick: (e, legendItem, legend) => {
+					// 		console(e);
+					// 		console(legendItem);
+					// 	},
+					// 	generateLabels : (chart) => {
+					// 		//console.log(chart.legend);
+					// 		return chart.data.datasets.map(
+					// 			(dataset,index)=>({
+					// 				text: dataset.label,
+					// 				fillStyle: dataset.pointBorderColor,
+					// 				strokeStyle: dataset.borderColor,
+					// 			})
+					// 		)
+					// 	}
+					// },
+					labels: {
+						boxWidth: 15,
+						boxHeight: 15,
+						font: {
+							size: 15,
+							weight: 500,
+						}
+					}
+				},
+				zoom: {
+					pan: {
+							enabled: true,
+							mode : 'x',
+						},
+					zoom: {
+						wheel: {
+							enabled: true,
+							speed : 0.01,
+						},
+						pinch: {
+							enabled: true,
+						},
+						drag: {
+							enabled : false,
+						},
+						mode: 'x',
+					}
+				},
+				datalabels: {
+					anchor : 'end',
+					align : 'top',
+					formatter : (value, context) =>{
+						return '$'+value;
+					}
+				},
+				tooltip: {
+					enabled: false
+				},
+			},
+		},
+		plugins: [ChartDataLabels]
+	};
+
+	// line_config.data.datasets.forEach(function(dataset) {
+	// dataset.borderColor = randomColor(0.4);
+	// dataset.backgroundColor = randomColor(0.5);
+	// dataset.pointBorderColor = randomColor(0.7);
+	// dataset.pointBackgroundColor = randomColor(0.5);
+	// dataset.pointBorderWidth = 1;
+	// });
+	var line_Chart = new Chart(document.getElementById('canvas_line'), line_config);
+
+	
+	// =========================
+	var bar_data = {
+			labels: [
+				'Cash','Physical QR','CDC Voucher','Cards','Giftcards','Online','Bulk Order','Other'
+			],
+			datasets: [
+			{
+				label: 'Pay Summary',
+				backgroundColor: [
+					'rgba(8,69,76,1)',
+					'rgba(17,151,166,1)',
+					'rgba(52,215,234,1)',
+					'rgba(144,233,243,1)',
+					'rgba(185,187,192,1)',
+					'rgba(222,213,217,1)',
+					'rgba(209,220,222,1)',
+					'rgba(209,220,222,1)',
+				],
+				data: [
+					112.78,35.00,18.92,39.82,13.00,18.42,20.00,150.00
+				],
+				borderRadius : 10,
+			}
+		]
+	};
+
+	const bar_config = {
+		type: 'bar',
+		data: bar_data,
+		options: {
+			scales: {
+				x: {
+					grid: {
+						display: false,
+					},
+					// min:0,
+					// max:6,
+				},
+				y: {
+					grid: {
+						display: false,
+					},
+					ticks: {
+						// Include a dollar sign in the ticks
+						callback: function(value, index, ticks) {
+							return '$' + value;
+						}
+					},
+					beginAtZero: true,
+				}
+			},
+			plugins: {
+				legend : {
+					display : false,
+				},
+				zoom: {
+					pan: {
+							enabled: true,
+							mode : 'x',
+						},
+					zoom: {
+						wheel: {
+							enabled: true,
+						},
+						pinch: {
+							enabled: true
+						},
+						drag: {
+							enabled : false,
+						},
+						mode: 'x',
+					}
+				},
+				datalabels: {
+					anchor : 'end',
+					align : 'top',
+					formatter : (value, context) =>{
+						return '$'+value;
+					}
+				},
+				tooltip: {
+					enabled: false
+				},
+			},
+		},
+		plugins: [ChartDataLabels]
+	};
+
+	// bar_config.data.datasets.forEach(function(dataset) {
+	// dataset.borderColor = randomColor(0.4);
+	// dataset.backgroundColor = randomColor(0.5);
+	// dataset.pointBorderColor = randomColor(0.7);
+	// dataset.pointBackgroundColor = randomColor(0.5);
+	// dataset.pointBorderWidth = 1;
+	// });
+	var bar_Chart = new Chart(document.getElementById('canvas_bar'), bar_config);
+	// =========================
+
+	var doughnut_data = {
+		labels: [
+			'Dine-in',
+			'Online',
+			'Takeaway',
+			'Bulk',
+		],
+		datasets: [{
+			label: 'My First Dataset',
+			data: [25.50,30.01, 20.5,40.5],
+			backgroundColor: [
+			'rgb(8,69,76,1)',
+			'rgb(17,164,166,1)',
+			'rgb(41,168,153,1)',
+			'rgb(78,212,196,1)',
+			],
+			hoverOffset: 4
+		}]
+	};
+
+	const doughnut_config = {
+		type: 'doughnut',
+		data: doughnut_data,
+		options: {
+			plugins: {
+				legend : {
+					display : true,
+					labels: {
+						boxWidth: 15,
+						boxHeight: 15,
+						font: {
+							size: 15,
+							weight: 500,
+						}
+					}
+				},
+				datalabels: {
+					color : 'rgb(255,255,255,1)',
+					anchor : 'center',
+					align : 'center',
+					formatter : (value, context) =>{
+						console.log(context);
+						//return '$'+value;
+						return value+'% \n\r'+context.chart.data.labels[
+                        	context.dataIndex
+                    	];
+					},
+					font: {
+						size: 15,
+					}
+				},
+				tooltip: {
+					enabled: false
+				},
+			},
+		},
+		plugins: [ChartDataLabels,{
+			id: 'text',
+			beforeDraw: function(chart, a, b) {
+			var width = chart.width,
+				height = chart.height,
+				ctx = chart.ctx;
+
+			ctx.restore();
+			var fontSize = (height / 200).toFixed(2);
+			ctx.font = fontSize + "em sans-serif";
+			ctx.textBaseline = "middle";
+
+			var text = "Order Type",
+				textX = Math.round((width - ctx.measureText(text).width) / 2),
+				textY = height / 1.9;
+
+			ctx.fillText(text, textX, textY);
+			ctx.save();
+			}
+		}]
+	};
+	
+	var doughnut_Chart = new Chart(document.getElementById('canvas_doughnut'), doughnut_config);
+
+
+</script>
+
+</html>
